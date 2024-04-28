@@ -1,77 +1,51 @@
-# Minecraft-Backup
+# Script de Sauvegarde Minecraft
 
----
+Ce dépôt contient un ensemble de scripts en C++ pour sauvegarder et transférer des fichiers de serveur Minecraft. Les scripts automatisent le processus de création de sauvegardes et de déplacement vers un serveur distant.
 
-# Scripts
+## Fonctionnalités
 
-## Récupérer les fichiers de la VM admin
+-   Sauvegardes périodiques des fichiers du serveur Minecraft.
+-   Transfert des sauvegardes vers un serveur distant.
+-   Génération de fichiers de log pour suivre le processus de sauvegarde et de transfert.
 
-```cpp
-#include <iostream>
-#include <unistd.h>
-#include <sys/time.h>
-#include <cstdlib>
-#include <fstream>
-#include <ctime>
+## Prérequis
 
-void saveDir(int i) {
-        system("scp -i ~/backup/sshkey.pem -p -r minecraft_admin@4.227.191.244:~/server ~/backup/saves");
-        system("find /home/otot/backup/saves/server -type f -exec chmod 644 {} \\;");
-        std::string folder = "/home/otot/backup/server_";
-        folder += std::to_string(i);
-        system(("mv /home/otot/backup/saves/server " + folder).c_str());
-        std::cout << "Transfert succeed" << std::endl;
-        return;
-}
+-   Compilateur C++ (testé avec g++).
+-   Clé SSH pour accéder au serveur distant.
 
-void generateLogs() {
-        std::string filename = "/home/otot/backup/backup.log";
-        std::fstream file;
-        file.open(filename, std::ios_base::app);
-        if (!file.is_open()) {
-                std::cerr << "Error: Could not open file " << filename << ".\n";
-                return;
-        } else {
-                std::time_t now = std::time(nullptr);
-                std::tm* now_tm = std::localtime(&now);
-                char time_buf[sizeof("YYYY-MM-DD HH:MM:SS")];
-                std::strftime(time_buf, sizeof(time_buf), "%Y-%m-%d %H:%M:%S", now_tm);
-                file << time_buf << " [===================]     save success" << std::endl;
-                file.close();
-        }
-}
+## Scripts
 
-int main() {
-        int i = 1;
-        for (int j = 0; j < 5; j++) {
-                saveDir(i);
-                std::cout << "Tranfert succeed" << std::endl;
-                generateLogs();
-                std::cout << "Logs generated" << std::endl;
-                sleep(1);
-                i++;
-        }
-        std::cout << "end" << std::endl;
-        return 0;
-}
-```
+### `backup.cpp`
 
-## Transférer les fichiers récupérés à la VM admin
+Ce script effectue les tâches suivantes :
 
-```cpp
-#include <iostream>
-#include <cstdlib>
-#include <cstdio>
+1.  Sauvegarde périodique des fichiers du serveur Minecraft dans un répertoire local.
+2.  Génère des fichiers de log pour suivre le processus de sauvegarde.
 
-void push() {
-        system("scp -i /home/otot/backup/sshkey.pem -r ~/backup/saves/server minecraft_admin@4.227.191.244:/home/minecraft_admin/");
-        system("logout");
-        std::cout << "Push success" << std::endl;
-        return;
-}
+#### Utilisation
 
-int main() {
-        push();
-        return 0;
-}
-```
+1. Editer le script avec vos informations  
+2. Compiler le script : `g++ backup.cpp -o backup`
+3. Exécuter le script : `./backup`
+
+### `restore.cpp`
+
+Ce script transfère les fichiers sauvegardés vers un serveur distant.
+
+#### Utilisation
+
+1. Editer le script avec vos informations    
+2. Compiler le script : `g++ push.cpp -o restore`
+3. Exécuter le script : `./restore`
+
+## Fichiers de log
+
+Le script `backup.cpp` génère des fichiers de logs. Les fichiers logs sont nommés `backup.log`.
+
+## Licence
+
+Ce projet est sous licence MIT - voir le fichier [LICENSE](https://www.blackbox.ai/chat/LICENSE) pour plus de détails.
+
+## Avertissement
+
+Ce projet n'est pas un projet officiel de Minecraft et n'est pas affilié à Mojang Studios ou à Minecraft. Il est fourni tel quel, sans aucune garantie. Utilisez à vos propres risques.
